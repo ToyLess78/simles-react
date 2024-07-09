@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import styles from './SignUpForm.module.css';
+import InputField from './InputField';
 
-interface SignUpFormProps {}
+interface SignUpFormProps {
+    isFullName?: boolean;
+}
 
-const SignUpForm: React.FC<SignUpFormProps> = () => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ isFullName = false }) => {
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -16,24 +19,45 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
         password: '',
     });
 
-    const validateField = (name: string, value: string) =>
-        name === 'fullName'
-            ? !value
-                ? 'Full name is required.'
-                : ''
-            : name === 'email'
-                ? !value
-                    ? 'Email is required.'
-                    : !/^\S+@\S+\.\S+$/.test(value)
-                        ? 'Email is invalid.'
-                        : ''
-                : name === 'password'
-                    ? !value
-                        ? 'Password is required.'
-                        : !/^.{3,20}$/.test(value)
-                            ? 'Password must be between 3 and 20 characters.'
-                            : ''
-                    : '';
+    const validateField = (name: string, value: string) => {
+        switch (name) {
+            case 'fullName':
+                return validateFullName(value, isFullName);
+            case 'email':
+                return validateEmail(value);
+            case 'password':
+                return validatePassword(value);
+            default:
+                return '';
+        }
+    };
+
+    const validateFullName = (value: string, isFullName: boolean) => {
+        if (isFullName && !value) {
+            return 'Full name is required.';
+        }
+        return '';
+    };
+
+    const validateEmail = (value: string) => {
+        if (!value) {
+            return 'Email is required.';
+        }
+        if (!/^\S+@\S+\.\S+$/.test(value)) {
+            return 'Email is invalid.';
+        }
+        return '';
+    };
+
+    const validatePassword = (value: string) => {
+        if (!value) {
+            return 'Password is required.';
+        }
+        if (!/^.{3,20}$/.test(value)) {
+            return 'Password must be between 3 and 20 characters.';
+        }
+        return '';
+    };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -60,56 +84,39 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         validateForm() && console.log('Form Data:', formData);
-        // Далі логіка для відправлення даних
     };
 
     return (
         <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.field}>
-                <label htmlFor="fullName" className={styles.label}>
-                    Full Name
-                </label>
-                <input
-                    type="text"
-                    id="fullName"
+            {isFullName && (
+                <InputField
                     name="fullName"
-                    className={styles.input}
+                    label="Full Name"
+                    type="text"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    required
+                    error={errors.fullName}
+                    required={isFullName}
                 />
-                {errors.fullName && <div className={styles.error}>{errors.fullName}</div>}
-            </div>
-            <div className={styles.field}>
-                <label htmlFor="email" className={styles.label}>
-                    Email
-                </label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className={styles.input}
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                />
-                {errors.email && <div className={styles.error}>{errors.email}</div>}
-            </div>
-            <div className={styles.field}>
-                <label htmlFor="password" className={styles.label}>
-                    Password
-                </label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    className={styles.input}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                />
-                {errors.password && <div className={styles.error}>{errors.password}</div>}
-            </div>
+            )}
+            <InputField
+                name="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                error={errors.email}
+                required
+            />
+            <InputField
+                name="password"
+                label="Password"
+                type="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                error={errors.password}
+                required
+            />
             <button type="submit" className={styles.button}>
                 Sign Up
             </button>
